@@ -4,8 +4,11 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const workflows = pgTable("workflows", {
@@ -14,6 +17,7 @@ export const workflows = pgTable("workflows", {
   description: text("description").notNull(),
   steps: jsonb("steps").notNull(),
   userId: integer("user_id").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const reports = pgTable("reports", {
@@ -32,7 +36,13 @@ export const chatHistory = pgTable("chat_history", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users);
+// Create Zod schema for user validation
+export const insertUserSchema = createInsertSchema(users).extend({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+});
+
 export const insertWorkflowSchema = createInsertSchema(workflows);
 export const insertReportSchema = createInsertSchema(reports);
 export const insertChatSchema = createInsertSchema(chatHistory);
