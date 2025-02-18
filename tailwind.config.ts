@@ -13,9 +13,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Sora", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
         display: ["Manrope", "system-ui", "sans-serif"],
-        mono: ["Inter", "monospace"],
+        mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -78,6 +78,11 @@ export default {
           "0%": { transform: "scale(0.95)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        shimmer: {
+          "100%": {
+            transform: "translateX(100%)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -85,6 +90,7 @@ export default {
         "fade-in": "fadeIn 0.5s ease-out",
         "slide-in": "slideIn 0.5s ease-out",
         "scale-in": "scaleIn 0.3s ease-out",
+        shimmer: "shimmer 2s infinite",
       },
     },
   },
