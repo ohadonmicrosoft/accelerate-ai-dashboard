@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { DefaultLayout } from "@/components/layout/DefaultLayout";
+import "./lib/firebase"; // Import firebase initialization
 
 // Import pages
 import LandingPage from "@/pages/landing";
@@ -14,11 +15,6 @@ import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  // Check if user is on landing or auth pages
-  const isPublicRoute = (path: string) => {
-    return ["/", "/auth"].includes(path);
-  };
-
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
