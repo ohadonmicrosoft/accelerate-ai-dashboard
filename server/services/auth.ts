@@ -6,6 +6,7 @@ import MemoryStore from "memorystore";
 import { db } from "../db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 const SessionStore = MemoryStore(session);
 const scryptAsync = promisify(scrypt);
@@ -22,6 +23,18 @@ async function comparePasswords(supplied: string, stored: string) {
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
+
+// Validation schemas
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const registerSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+});
 
 export function setupAuth(app: Express) {
   // Configure session middleware
@@ -40,13 +53,15 @@ export function setupAuth(app: Express) {
   // Authentication endpoints
   app.post('/api/auth/register', async (req, res) => {
     try {
-      const { email, password, name } = req.body;
+      // Validate request body
+      const validatedData = registerSchema.parse(req.body);
+      const { email, password, name } = validatedData;
 
       // Check if user already exists
       const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
       if (existingUser.length > 0) {
-        return res.status(400).json({ error: 'Email already registered' });
+        return res.status(400).json({ error: 'Email is already registered' });
       }
 
       // Hash password and create user
@@ -73,19 +88,30 @@ export function setupAuth(app: Express) {
         name: user.name,
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       console.error('Registration error:', error);
-      res.status(500).json({ error: 'Registration failed' });
+      res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
   });
 
   app.post('/api/auth/login', async (req, res) => {
     try {
-      const { email, password } = req.body;
+      // Validate request body
+      const validatedData = loginSchema.parse(req.body);
+      const { email, password } = validatedData;
 
       // Find user by email
       const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
-      if (!user || !(await comparePasswords(password, user.password))) {
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // Verify password
+      const isValidPassword = await comparePasswords(password, user.password);
+      if (!isValidPassword) {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
@@ -102,8 +128,11 @@ export function setupAuth(app: Express) {
         name: user.name,
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       console.error('Login error:', error);
-      res.status(500).json({ error: 'Login failed' });
+      res.status(500).json({ error: 'Login failed. Please try again.' });
     }
   });
 
