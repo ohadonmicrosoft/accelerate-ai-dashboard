@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -46,6 +46,17 @@ export default function AuthPage() {
       password: "",
     },
   });
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setLocation("/dashboard");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth, setLocation]);
 
   async function onSubmit(data: AuthFormData) {
     setLoading(true);
