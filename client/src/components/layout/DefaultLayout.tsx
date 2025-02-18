@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getAuth, signOut } from "firebase/auth";
+import { useAuth } from "@/lib/auth";
 
 interface NavItem {
   title: string;
@@ -85,13 +85,12 @@ export function DefaultLayout({ children }: DefaultLayoutProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications] = useState(3);
-  const auth = getAuth();
-  const user = auth.currentUser;
+  const { user, logout } = useAuth();
 
   // Handle sign out
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
+      await logout();
       setLocation("/auth");
     } catch (error) {
       console.error("Error signing out:", error);
@@ -137,8 +136,8 @@ export function DefaultLayout({ children }: DefaultLayoutProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || "User"} />
-            <AvatarFallback>{user?.email?.[0].toUpperCase() || "U"}</AvatarFallback>
+            <AvatarImage src={user?.avatar} alt={user?.name || "User"} />
+            <AvatarFallback>{user?.name?.[0].toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

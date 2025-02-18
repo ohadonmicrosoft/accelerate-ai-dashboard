@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -23,88 +23,49 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { useAuth } from "@/lib/auth";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().optional(),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login, register, isAuthenticating } = useAuth();
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
     defaultValues: {
       email: "",
       password: "",
+      name: "",
     },
   });
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setLocation("/dashboard");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [setLocation]);
-
-  const getErrorMessage = (error: any) => {
-    const code = error?.code || error?.message;
-    switch (code) {
-      case 'auth/email-already-in-use':
-        return 'This email is already registered. Please try logging in instead.';
-      case 'auth/invalid-email':
-        return 'Please enter a valid email address.';
-      case 'auth/operation-not-allowed':
-        return 'Email/password accounts are not enabled. Please contact support.';
-      case 'auth/weak-password':
-        return 'Please choose a stronger password.';
-      case 'auth/user-not-found':
-        return 'No account found with this email. Please sign up instead.';
-      case 'auth/wrong-password':
-        return 'Incorrect password. Please try again.';
-      case 'auth/network-request-failed':
-        return 'Network error. Please check your connection and try again.';
-      case 'auth/configuration-not-found':
-        return 'Authentication service is not properly configured. Please try again later.';
-      default:
-        return error?.message || 'An error occurred. Please try again.';
-    }
-  };
-
   const handleAuth = async (data: AuthFormData) => {
-    setLoading(true);
     try {
-      // Ensure Firebase is initialized
-      if (!auth) {
-        throw new Error("Firebase authentication is not initialized");
-      }
-
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, data.email, data.password);
+        await login({ email: data.email, password: data.password });
       } else {
-        await createUserWithEmailAndPassword(auth, data.email, data.password);
+        await register({
+          email: data.email,
+          password: data.password,
+          name: data.name || "",
+        });
       }
-      // Redirect will be handled by onAuthStateChanged
+      setLocation("/dashboard");
     } catch (error: any) {
-      console.error('Auth error:', error);
-      let errorMessage = getErrorMessage(error);
-
       toast({
         title: "Authentication Error",
-        description: errorMessage,
+        description: error.message,
         variant: "destructive",
       });
-      setLoading(false);
     }
   };
 
@@ -139,7 +100,7 @@ export default function AuthPage() {
                           <Input
                             type="email"
                             placeholder="Enter your email"
-                            disabled={loading}
+                            disabled={isAuthenticating}
                             {...field}
                           />
                         </FormControl>
@@ -147,6 +108,25 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
+                  {!isLogin && (
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter your name"
+                              disabled={isAuthenticating}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={form.control}
                     name="password"
@@ -157,7 +137,7 @@ export default function AuthPage() {
                           <Input
                             type="password"
                             placeholder="Enter your password"
-                            disabled={loading}
+                            disabled={isAuthenticating}
                             {...field}
                           />
                         </FormControl>
@@ -165,8 +145,8 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
+                  <Button type="submit" className="w-full" disabled={isAuthenticating}>
+                    {isAuthenticating ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
                   </Button>
                 </form>
               </Form>
@@ -176,7 +156,7 @@ export default function AuthPage() {
                 variant="ghost"
                 className="w-full"
                 onClick={() => setIsLogin(!isLogin)}
-                disabled={loading}
+                disabled={isAuthenticating}
               >
                 {isLogin
                   ? "Don't have an account? Sign Up"
