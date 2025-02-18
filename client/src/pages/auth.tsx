@@ -23,8 +23,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase"; // Import auth directly
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -48,7 +48,6 @@ export default function AuthPage() {
   });
 
   useEffect(() => {
-    // Check if user is already authenticated
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setLocation("/dashboard");
@@ -58,7 +57,8 @@ export default function AuthPage() {
     return () => unsubscribe();
   }, [setLocation]);
 
-  const getErrorMessage = (code: string) => {
+  const getErrorMessage = (error: any) => {
+    const code = error?.code || error?.message;
     switch (code) {
       case 'auth/email-already-in-use':
         return 'This email is already registered. Please try logging in instead.';
@@ -72,12 +72,14 @@ export default function AuthPage() {
         return 'No account found with this email. Please sign up instead.';
       case 'auth/wrong-password':
         return 'Incorrect password. Please try again.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your connection and try again.';
       default:
-        return 'An error occurred. Please try again.';
+        return error?.message || 'An error occurred. Please try again.';
     }
   };
 
-  async function onSubmit(data: AuthFormData) {
+  const handleAuth = async (data: AuthFormData) => {
     setLoading(true);
     try {
       if (isLogin) {
@@ -85,22 +87,20 @@ export default function AuthPage() {
       } else {
         await createUserWithEmailAndPassword(auth, data.email, data.password);
       }
-      setLocation("/dashboard");
+      // Redirect will be handled by onAuthStateChanged
     } catch (error: any) {
       console.error('Auth error:', error);
       toast({
         title: "Authentication Error",
-        description: getErrorMessage(error.code),
+        description: getErrorMessage(error),
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      {/* Auth Form */}
       <div className="flex items-center justify-center p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -119,7 +119,7 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(handleAuth)} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="email"
@@ -127,7 +127,12 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your email" {...field} />
+                          <Input 
+                            type="email"
+                            placeholder="Enter your email"
+                            disabled={loading}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -143,6 +148,7 @@ export default function AuthPage() {
                           <Input
                             type="password"
                             placeholder="Enter your password"
+                            disabled={loading}
                             {...field}
                           />
                         </FormControl>
@@ -161,6 +167,7 @@ export default function AuthPage() {
                 variant="ghost"
                 className="w-full"
                 onClick={() => setIsLogin(!isLogin)}
+                disabled={loading}
               >
                 {isLogin
                   ? "Don't have an account? Sign Up"
@@ -217,7 +224,6 @@ export default function AuthPage() {
             </ul>
           </motion.div>
         </div>
-        {/* Background Elements */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
           <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-muted [mask-image:radial-gradient(circle_at_center,transparent_20%,black)]" />
