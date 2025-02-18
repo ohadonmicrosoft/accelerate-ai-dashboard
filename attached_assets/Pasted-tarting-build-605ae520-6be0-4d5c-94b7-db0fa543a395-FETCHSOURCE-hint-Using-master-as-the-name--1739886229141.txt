@@ -1,0 +1,157 @@
+tarting build "605ae520-6be0-4d5c-94b7-db0fa543a395"
+FETCHSOURCE
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+Initialized empty Git repository in /workspace/.git/
+From https://github.com/ohadonmicrosoft/accelerate-ai-dashboard
+ * branch            f493ba5ac3c54f79181cac2ea05c2011939a8c7b -> FETCH_HEAD
+HEAD is now at f493ba5 Auto-sync: Changes from Replit
+GitCommit:
+f493ba5ac3c54f79181cac2ea05c2011939a8c7b
+BUILD
+Starting Step #0 - "ubuntu"
+Pulling image: ubuntu
+Using default tag: latest
+latest: Pulling from library/ubuntu
+Digest: sha256:72297848456d5d37d1262630108ab308d3e9ec7ed1c3286a32fe09856619a782
+Status: Downloaded newer image for ubuntu:latest
+docker.io/library/ubuntu:latest
+Finished Step #0 - "ubuntu"
+Starting Step #1 - "preparer"
+Pulling image: gcr.io/buildpacks/firebase-app-hosting-22/builder:0d3c0d0f45d7add72962af267e2e9b0263259a78
+0d3c0d0f45d7add72962af267e2e9b0263259a78: Pulling from buildpacks/firebase-app-hosting-22/builder
+7478e0ac0f23: Already exists
+789959205159: Pulling fs layer
+8345b052268b: Pulling fs layer
+ce72a00e5b5c: Pulling fs layer
+ad89646adcc9: Pulling fs layer
+4be00c7193ff: Pulling fs layer
+393b43dc5520: Pulling fs layer
+357fefdf9bc9: Pulling fs layer
+8416fcb4dc1e: Pulling fs layer
+8dcd00ba4882: Pulling fs layer
+870fec544f6c: Pulling fs layer
+700558f5f03e: Pulling fs layer
+2aac6ab86a66: Pulling fs layer
+ecbe046bc0f8: Pulling fs layer
+10dc07b05a53: Pulling fs layer
+4be00c7193ff: Waiting
+393b43dc5520: Waiting
+357fefdf9bc9: Waiting
+8416fcb4dc1e: Waiting
+8dcd00ba4882: Waiting
+870fec544f6c: Waiting
+700558f5f03e: Waiting
+2aac6ab86a66: Waiting
+ad89646adcc9: Waiting
+c8b02cb4df16: Pulling fs layer
+dff4ff31af26: Pulling fs layer
+ecbe046bc0f8: Waiting
+548eb8f86e6e: Pulling fs layer
+aba207a2a2a1: Pulling fs layer
+10dc07b05a53: Waiting
+4f4fb700ef54: Pulling fs layer
+341d09a8568b: Pulling fs layer
+9edc97e06996: Pulling fs layer
+c8b02cb4df16: Waiting
+dff4ff31af26: Waiting
+548eb8f86e6e: Waiting
+aba207a2a2a1: Waiting
+4f4fb700ef54: Waiting
+341d09a8568b: Waiting
+9edc97e06996: Waiting
+789959205159: Verifying Checksum
+789959205159: Download complete
+789959205159: Pull complete
+ad89646adcc9: Verifying Checksum
+ad89646adcc9: Download complete
+ce72a00e5b5c: Verifying Checksum
+ce72a00e5b5c: Download complete
+393b43dc5520: Verifying Checksum
+393b43dc5520: Download complete
+4be00c7193ff: Verifying Checksum
+4be00c7193ff: Download complete
+357fefdf9bc9: Verifying Checksum
+357fefdf9bc9: Download complete
+8345b052268b: Verifying Checksum
+8345b052268b: Download complete
+8dcd00ba4882: Verifying Checksum
+8dcd00ba4882: Download complete
+8416fcb4dc1e: Verifying Checksum
+8416fcb4dc1e: Download complete
+870fec544f6c: Verifying Checksum
+870fec544f6c: Download complete
+700558f5f03e: Verifying Checksum
+700558f5f03e: Download complete
+2aac6ab86a66: Verifying Checksum
+2aac6ab86a66: Download complete
+ecbe046bc0f8: Verifying Checksum
+ecbe046bc0f8: Download complete
+10dc07b05a53: Verifying Checksum
+10dc07b05a53: Download complete
+c8b02cb4df16: Download complete
+dff4ff31af26: Verifying Checksum
+dff4ff31af26: Download complete
+548eb8f86e6e: Verifying Checksum
+548eb8f86e6e: Download complete
+aba207a2a2a1: Verifying Checksum
+aba207a2a2a1: Download complete
+4f4fb700ef54: Verifying Checksum
+4f4fb700ef54: Download complete
+341d09a8568b: Verifying Checksum
+341d09a8568b: Download complete
+9edc97e06996: Verifying Checksum
+9edc97e06996: Download complete
+8345b052268b: Pull complete
+ce72a00e5b5c: Pull complete
+ad89646adcc9: Pull complete
+4be00c7193ff: Pull complete
+393b43dc5520: Pull complete
+357fefdf9bc9: Pull complete
+8416fcb4dc1e: Pull complete
+8dcd00ba4882: Pull complete
+870fec544f6c: Pull complete
+700558f5f03e: Pull complete
+2aac6ab86a66: Pull complete
+ecbe046bc0f8: Pull complete
+10dc07b05a53: Pull complete
+c8b02cb4df16: Pull complete
+dff4ff31af26: Pull complete
+548eb8f86e6e: Pull complete
+aba207a2a2a1: Pull complete
+4f4fb700ef54: Pull complete
+341d09a8568b: Pull complete
+9edc97e06996: Pull complete
+Digest: sha256:42060d24022629953b06974dc06c8a072a0fafab507b065afd7214a8a48e8ced
+Status: Downloaded newer image for gcr.io/buildpacks/firebase-app-hosting-22/builder:0d3c0d0f45d7add72962af267e2e9b0263259a78
+gcr.io/buildpacks/firebase-app-hosting-22/builder:0d3c0d0f45d7add72962af267e2e9b0263259a78
+2025/02/18 13:41:42 Missing apphosting config at /workspace/apphosting.yaml, using reasonable defaults
+2025/02/18 13:41:42 FIREBASE_CONFIG has no availability specified, applying the default of 'BUILD' and 'RUNTIME'
+2025/02/18 13:41:42 Final app hosting schema:
+env:
+- variable: FIREBASE_CONFIG
+  value: '{"databaseURL":"","projectId":"accelerateaifb","storageBucket":"accelerateaifb.firebasestorage.app"}'
+  availability:
+  - BUILD
+  - RUNTIME
+--------------------------------------------------------------------------------
+(error ID: c538b45d):
+{"reason":"Invalid Root Directory","code":"fah/invalid-root-directory","userFacingMessage":"Invalid root directory specified. No buildable app found rooted at 'dist'. Please go to your backend settings page and, in the Deployment tab, configure your root directory to point to the root of the target application.","rawLog":"stat /workspace/dist: no such file or directory"}
+--------------------------------------------------------------------------------
+Sorry your project couldn't be built.
+Our documentation explains ways to configure Buildpacks to better recognise your project:
+ -> https://cloud.google.com/docs/buildpacks/overview
+If you think you've found an issue, please report it:
+ -> https://github.com/GoogleCloudPlatform/buildpacks/issues/new
+--------------------------------------------------------------------------------
+Finished Step #1 - "preparer"
+ERROR
+ERROR: build step 1 "gcr.io/buildpacks/firebase-app-hosting-22/builder:0d3c0d0f45d7add72962af267e2e9b0263259a78" failed: step exited with non-zero status: 1
