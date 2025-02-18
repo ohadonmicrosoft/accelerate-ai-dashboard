@@ -1,0 +1,1 @@
+// This file can be deleted as we've moved all OpenAI operations to the server
