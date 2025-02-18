@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase"; // Import auth directly
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -37,7 +38,6 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const auth = getAuth();
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -56,7 +56,26 @@ export default function AuthPage() {
     });
 
     return () => unsubscribe();
-  }, [auth, setLocation]);
+  }, [setLocation]);
+
+  const getErrorMessage = (code: string) => {
+    switch (code) {
+      case 'auth/email-already-in-use':
+        return 'This email is already registered. Please try logging in instead.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/operation-not-allowed':
+        return 'Email/password accounts are not enabled. Please contact support.';
+      case 'auth/weak-password':
+        return 'Please choose a stronger password.';
+      case 'auth/user-not-found':
+        return 'No account found with this email. Please sign up instead.';
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again.';
+      default:
+        return 'An error occurred. Please try again.';
+    }
+  };
 
   async function onSubmit(data: AuthFormData) {
     setLoading(true);
@@ -68,9 +87,10 @@ export default function AuthPage() {
       }
       setLocation("/dashboard");
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         title: "Authentication Error",
-        description: error.message,
+        description: getErrorMessage(error.code),
         variant: "destructive",
       });
     } finally {
@@ -131,7 +151,7 @@ export default function AuthPage() {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {isLogin ? "Sign In" : "Sign Up"}
+                    {loading ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
                   </Button>
                 </form>
               </Form>
