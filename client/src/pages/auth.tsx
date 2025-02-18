@@ -74,6 +74,8 @@ export default function AuthPage() {
         return 'Incorrect password. Please try again.';
       case 'auth/network-request-failed':
         return 'Network error. Please check your connection and try again.';
+      case 'auth/configuration-not-found':
+        return 'Authentication service is not properly configured. Please try again later.';
       default:
         return error?.message || 'An error occurred. Please try again.';
     }
@@ -82,6 +84,11 @@ export default function AuthPage() {
   const handleAuth = async (data: AuthFormData) => {
     setLoading(true);
     try {
+      // Ensure Firebase is initialized
+      if (!auth) {
+        throw new Error("Firebase authentication is not initialized");
+      }
+
       if (isLogin) {
         await signInWithEmailAndPassword(auth, data.email, data.password);
       } else {
@@ -90,9 +97,11 @@ export default function AuthPage() {
       // Redirect will be handled by onAuthStateChanged
     } catch (error: any) {
       console.error('Auth error:', error);
+      let errorMessage = getErrorMessage(error);
+
       toast({
         title: "Authentication Error",
-        description: getErrorMessage(error),
+        description: errorMessage,
         variant: "destructive",
       });
       setLoading(false);
@@ -127,7 +136,7 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             type="email"
                             placeholder="Enter your email"
                             disabled={loading}
