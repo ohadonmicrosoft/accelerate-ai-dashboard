@@ -51,10 +51,13 @@ export function setupAuth(app: Express) {
 
       // Hash password and create user
       const hashedPassword = await hashPassword(password);
+      const now = new Date();
       const [user] = await db.insert(users).values({
         email,
         password: hashedPassword,
         name,
+        createdAt: now,
+        updatedAt: now,
       }).returning();
 
       // Set user session
