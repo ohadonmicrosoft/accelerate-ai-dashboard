@@ -2,15 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
-// Firebase configuration
+// Firebase configuration with only essential variables
 const firebaseConfig = {
-  apiKey: "AIzaSyAFg3GmvamicTe6dYuvnZQ1Q2b--cn8DVI",
-  authDomain: "accelerateaifb.firebaseapp.com",
-  projectId: "accelerateaifb",
-  storageBucket: "accelerateaifb.firebasestorage.app",
-  messagingSenderId: "958357675419",
-  appId: "1:958357675419:web:8d9d88cc7695a48c03153e",
-  measurementId: "G-M9PYLEWLVQ"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
