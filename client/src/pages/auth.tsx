@@ -25,22 +25,18 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 
-const authSchema = z.object({
+// Separate schemas for login and registration
+const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().optional(),
-}).refine((data) => {
-  // Only require name during registration
-  if (!data.name && !document.getElementById('login-form')) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Name is required for registration",
-  path: ["name"],
 });
 
-type AuthFormData = z.infer<typeof authSchema>;
+const registerSchema = loginSchema.extend({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -55,8 +51,16 @@ export default function AuthPage() {
     }
   }, [user, setLocation]);
 
-  const form = useForm<AuthFormData>({
-    resolver: zodResolver(authSchema),
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const registerForm = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -64,19 +68,21 @@ export default function AuthPage() {
     },
   });
 
-  const handleAuth = async (data: AuthFormData) => {
+  const currentForm = isLogin ? loginForm : registerForm;
+
+  const handleAuth = async (data: LoginFormData | RegisterFormData) => {
     try {
       if (isLogin) {
-        await login({ email: data.email, password: data.password });
+        await login({ 
+          email: data.email, 
+          password: data.password 
+        });
       } else {
-        if (!data.name) {
-          form.setError("name", { message: "Name is required for registration" });
-          return;
-        }
+        const registerData = data as RegisterFormData;
         await register({
-          email: data.email,
-          password: data.password,
-          name: data.name,
+          email: registerData.email,
+          password: registerData.password,
+          name: registerData.name,
         });
       }
     } catch (error: any) {
@@ -91,7 +97,8 @@ export default function AuthPage() {
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    form.reset();
+    loginForm.reset();
+    registerForm.reset();
   };
 
   return (
@@ -113,14 +120,13 @@ export default function AuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
+              <Form {...currentForm}>
                 <form 
-                  id={isLogin ? "login-form" : "register-form"}
-                  onSubmit={form.handleSubmit(handleAuth)} 
+                  onSubmit={currentForm.handleSubmit(handleAuth)} 
                   className="space-y-4"
                 >
                   <FormField
-                    control={form.control}
+                    control={currentForm.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
@@ -139,7 +145,7 @@ export default function AuthPage() {
                   />
                   {!isLogin && (
                     <FormField
-                      control={form.control}
+                      control={currentForm.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
@@ -157,7 +163,7 @@ export default function AuthPage() {
                     />
                   )}
                   <FormField
-                    control={form.control}
+                    control={currentForm.control}
                     name="password"
                     render={({ field }) => (
                       <FormItem>
@@ -177,7 +183,7 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={isAuthenticating || form.formState.isSubmitting || !form.formState.isValid}
+                    disabled={isAuthenticating}
                   >
                     {isAuthenticating ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
                   </Button>
