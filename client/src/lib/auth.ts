@@ -18,7 +18,8 @@ const api = {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      credentials: 'include' // Important for session cookies
     });
 
     if (!response.ok) {
@@ -33,7 +34,8 @@ const api = {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      credentials: 'include' // Important for session cookies
     });
 
     if (!response.ok) {
@@ -46,21 +48,28 @@ const api = {
 
   async logout() {
     const response = await fetch('/api/auth/logout', {
-      method: 'POST'
+      method: 'POST',
+      credentials: 'include' // Important for session cookies
     });
 
     if (!response.ok) {
-      throw new Error('Logout failed');
+      const error = await response.json();
+      throw new Error(error.error || 'Logout failed');
     }
   },
 
   async getUser() {
-    const response = await fetch('/api/auth/user');
+    const response = await fetch('/api/auth/user', {
+      credentials: 'include' // Important for session cookies
+    });
+
     if (response.status === 401) return null;
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to get user');
     }
+
     return response.json();
   }
 };
@@ -68,10 +77,12 @@ const api = {
 // React hooks for authentication
 export function useAuth() {
   const { toast } = useToast();
+
   const { data: user, isLoading } = useQuery({
     queryKey: ['auth-user'],
     queryFn: api.getUser,
-    retry: false
+    retry: false,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 
   const loginMutation = useMutation({
@@ -84,6 +95,8 @@ export function useAuth() {
       });
     },
     onError: (error: Error) => {
+      // Clear any existing auth data on error
+      queryClient.setQueryData(['auth-user'], null);
       toast({
         title: "Login failed",
         description: error.message,
@@ -102,6 +115,8 @@ export function useAuth() {
       });
     },
     onError: (error: Error) => {
+      // Clear any existing auth data on error
+      queryClient.setQueryData(['auth-user'], null);
       toast({
         title: "Registration failed",
         description: error.message,

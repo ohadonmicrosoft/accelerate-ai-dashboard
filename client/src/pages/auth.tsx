@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -28,9 +28,16 @@ import { useAuth } from "@/lib/auth";
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().optional().refine((val) => !val || val.length >= 2, {
-    message: "Name must be at least 2 characters",
-  }),
+  name: z.string().optional(),
+}).refine((data) => {
+  // Only require name during registration
+  if (!data.name && !document.getElementById('login-form')) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Name is required for registration",
+  path: ["name"],
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
@@ -42,10 +49,11 @@ export default function AuthPage() {
   const { login, register, isAuthenticating, user } = useAuth();
 
   // Redirect if already logged in
-  if (user) {
-    setLocation("/dashboard");
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      setLocation("/dashboard");
+    }
+  }, [user, setLocation]);
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -71,7 +79,6 @@ export default function AuthPage() {
           name: data.name,
         });
       }
-      setLocation("/dashboard");
     } catch (error: any) {
       console.error("Auth error:", error);
       toast({
@@ -107,7 +114,11 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleAuth)} className="space-y-4">
+                <form 
+                  id={isLogin ? "login-form" : "register-form"}
+                  onSubmit={form.handleSubmit(handleAuth)} 
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="email"
@@ -166,7 +177,7 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={isAuthenticating || form.formState.isSubmitting}
+                    disabled={isAuthenticating || form.formState.isSubmitting || !form.formState.isValid}
                   >
                     {isAuthenticating ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
                   </Button>
