@@ -28,7 +28,9 @@ import { useAuth } from "@/lib/auth";
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().optional(),
+  name: z.string().optional().refine((val) => !val || val.length >= 2, {
+    message: "Name must be at least 2 characters",
+  }),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
@@ -37,7 +39,13 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { login, register, isAuthenticating } = useAuth();
+  const { login, register, isAuthenticating, user } = useAuth();
+
+  // Redirect if already logged in
+  if (user) {
+    setLocation("/dashboard");
+    return null;
+  }
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -53,20 +61,30 @@ export default function AuthPage() {
       if (isLogin) {
         await login({ email: data.email, password: data.password });
       } else {
+        if (!data.name) {
+          form.setError("name", { message: "Name is required for registration" });
+          return;
+        }
         await register({
           email: data.email,
           password: data.password,
-          name: data.name || "",
+          name: data.name,
         });
       }
       setLocation("/dashboard");
     } catch (error: any) {
+      console.error("Auth error:", error);
       toast({
-        title: "Authentication Error",
-        description: error.message,
+        title: isLogin ? "Login Failed" : "Registration Failed",
+        description: error.message || "Please check your credentials and try again",
         variant: "destructive",
       });
     }
+  };
+
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    form.reset();
   };
 
   return (
@@ -145,7 +163,11 @@ export default function AuthPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isAuthenticating}>
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={isAuthenticating || form.formState.isSubmitting}
+                  >
                     {isAuthenticating ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
                   </Button>
                 </form>
@@ -155,7 +177,7 @@ export default function AuthPage() {
               <Button
                 variant="ghost"
                 className="w-full"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={toggleMode}
                 disabled={isAuthenticating}
               >
                 {isLogin

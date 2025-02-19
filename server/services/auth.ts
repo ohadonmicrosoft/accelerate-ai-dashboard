@@ -54,19 +54,33 @@ export function setupAuth(app: Express) {
   app.post('/api/auth/register', async (req, res) => {
     try {
       // Validate request body
-      const validatedData = registerSchema.parse(req.body);
-      const { email, password, name } = validatedData;
+      const validatedData = registerSchema.safeParse(req.body);
+
+      if (!validatedData.success) {
+        return res.status(400).json({ 
+          error: validatedData.error.errors[0].message 
+        });
+      }
+
+      const { email, password, name } = validatedData.data;
 
       // Check if user already exists
-      const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
 
       if (existingUser.length > 0) {
-        return res.status(400).json({ error: 'Email is already registered' });
+        return res.status(400).json({ 
+          error: 'Email is already registered' 
+        });
       }
 
       // Hash password and create user
       const hashedPassword = await hashPassword(password);
       const now = new Date();
+
       const [user] = await db.insert(users).values({
         email,
         password: hashedPassword,
@@ -82,37 +96,53 @@ export function setupAuth(app: Express) {
         name: user.name,
       };
 
+      // Return user data (excluding password)
       res.status(201).json({ 
         id: user.id,
         email: user.email,
         name: user.name,
       });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors[0].message });
-      }
       console.error('Registration error:', error);
-      res.status(500).json({ error: 'Registration failed. Please try again.' });
+      res.status(500).json({ 
+        error: 'Registration failed. Please try again.' 
+      });
     }
   });
 
   app.post('/api/auth/login', async (req, res) => {
     try {
       // Validate request body
-      const validatedData = loginSchema.parse(req.body);
-      const { email, password } = validatedData;
+      const validatedData = loginSchema.safeParse(req.body);
+
+      if (!validatedData.success) {
+        return res.status(400).json({ 
+          error: validatedData.error.errors[0].message 
+        });
+      }
+
+      const { email, password } = validatedData.data;
 
       // Find user by email
-      const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
 
       if (!user) {
-        return res.status(401).json({ error: 'Invalid email or password' });
+        return res.status(401).json({ 
+          error: 'Invalid email or password' 
+        });
       }
 
       // Verify password
       const isValidPassword = await comparePasswords(password, user.password);
+
       if (!isValidPassword) {
-        return res.status(401).json({ error: 'Invalid email or password' });
+        return res.status(401).json({ 
+          error: 'Invalid email or password' 
+        });
       }
 
       // Set user session
@@ -122,17 +152,17 @@ export function setupAuth(app: Express) {
         name: user.name,
       };
 
+      // Return user data (excluding password)
       res.json({ 
         id: user.id,
         email: user.email,
         name: user.name,
       });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors[0].message });
-      }
       console.error('Login error:', error);
-      res.status(500).json({ error: 'Login failed. Please try again.' });
+      res.status(500).json({ 
+        error: 'Login failed. Please try again.' 
+      });
     }
   });
 
@@ -140,36 +170,47 @@ export function setupAuth(app: Express) {
     req.session.destroy((err) => {
       if (err) {
         console.error('Logout error:', err);
-        return res.status(500).json({ error: 'Logout failed' });
+        return res.status(500).json({ 
+          error: 'Logout failed' 
+        });
       }
-      res.status(200).json({ message: 'Logged out successfully' });
+      res.status(200).json({ 
+        message: 'Logged out successfully' 
+      });
     });
   });
 
   app.get('/api/auth/user', async (req, res) => {
     if (!req.session.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ 
+        error: 'Not authenticated' 
+      });
     }
 
     try {
-      const [user] = await db.select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-      })
-      .from(users)
-      .where(eq(users.id, req.session.user.id))
-      .limit(1);
+      const [user] = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+        })
+        .from(users)
+        .where(eq(users.id, req.session.user.id))
+        .limit(1);
 
       if (!user) {
         req.session.destroy(() => {});
-        return res.status(401).json({ error: 'User not found' });
+        return res.status(401).json({ 
+          error: 'User not found' 
+        });
       }
 
       res.json(user);
     } catch (error) {
       console.error('Error fetching user:', error);
-      res.status(500).json({ error: 'Failed to fetch user data' });
+      res.status(500).json({ 
+        error: 'Failed to fetch user data' 
+      });
     }
   });
 }
