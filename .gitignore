@@ -1,3 +1,4 @@
+
 # Dependencies
 node_modules
 /.pnp
@@ -13,12 +14,8 @@ client/build
 client/dist
 
 # Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
+.env*
+!.env.example
 
 # Debug logs
 npm-debug.log*
@@ -51,20 +48,6 @@ replit.nix
 .config/
 .upm/
 .breakpoints
-.replit.backup
-
-# Firebase
-.firebase/
-firebase.json
-.firebaserc
-firebase-debug.log*
-firebase-debug.*.log*
-.firebase-config.json
-
-# Project specific
-/attached_assets
-*.tar.gz
-.cache
 
 # Database
 *.sqlite
@@ -75,3 +58,18 @@ firebase-debug.*.log*
 *.psd
 *.ai
 *.sketch
+
+# Build cache
+.next
+.nuxt
+.vuepress/dist
+.docusaurus
+.serverless
+.turbo
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+*.tmp
+*~
