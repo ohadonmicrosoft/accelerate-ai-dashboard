@@ -336,7 +336,8 @@
     "zod-validation-error": "^3.4.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx server/index.ts"
   },
   "keywords": [],
   "author": "",
