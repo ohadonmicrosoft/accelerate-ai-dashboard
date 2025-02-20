@@ -32,9 +32,7 @@ const loginSchema = z.object({
 });
 
 // Register form schema
-const registerSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+const registerSchema = loginSchema.extend({
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
 
@@ -189,7 +187,7 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user, login, register, isAuthenticating } = useAuth();
+  const { login, register, isAuthenticating, user } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
