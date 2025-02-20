@@ -1,6 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "./queryClient";
-import { User } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginData {
@@ -9,6 +8,12 @@ interface LoginData {
 }
 
 interface RegisterData extends LoginData {
+  name: string;
+}
+
+interface User {
+  id: number;
+  email: string;
   name: string;
 }
 

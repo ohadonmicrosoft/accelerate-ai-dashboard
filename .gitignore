@@ -19,6 +19,7 @@ client/dist
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
 # Debug logs
 npm-debug.log*
@@ -47,7 +48,24 @@ Thumbs.db
 *.timestamp-*.mjs
 vite.config.ts.*
 
-# Misc
+# Firebase
+.firebase/
+firebase.json
+.firebaserc
+firebase-debug.log*
+firebase-debug.*.log*
+.firebase-config.json
+
+# Replit specific
+.replit
+replit.nix
+.cache/
+.config/
+.upm/
+.breakpoints
+.replit.backup
+
+# Other
 *.log
 *.tar.gz
 .cache

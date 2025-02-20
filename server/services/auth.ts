@@ -30,9 +30,7 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const registerSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+const registerSchema = loginSchema.extend({
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
 
@@ -45,7 +43,7 @@ export function setupAuth(app: Express) {
         checkPeriod: 86400000 // prune expired entries every 24h
       }),
       resave: false,
-      secret: process.env.SESSION_SECRET || 'development_secret',
+      secret: 'your-secret-key', // In production, use environment variable
       saveUninitialized: false,
     })
   );

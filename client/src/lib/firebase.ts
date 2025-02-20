@@ -1,1 +1,0 @@
-// This file should be deleted - we're using Replit's authentication system now
