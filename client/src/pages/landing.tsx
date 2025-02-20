@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,18 @@ import {
   Workflow,
   MessageSquare
 } from "lucide-react";
+
+interface MotionDivProps extends HTMLMotionProps<"div"> {
+  className?: string;
+}
+
+interface MotionHeadingProps extends HTMLMotionProps<"h1"> {
+  className?: string;
+}
+
+interface MotionParagraphProps extends HTMLMotionProps<"p"> {
+  className?: string;
+}
 
 export default function LandingPage() {
   const features = [
@@ -100,6 +112,7 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="motion-div"
               >
                 <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   <feature.icon className="h-12 w-12 text-primary mb-4" />

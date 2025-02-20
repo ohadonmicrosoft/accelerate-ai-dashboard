@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,6 +24,11 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+
+// Motion component interfaces
+interface MotionDivProps extends HTMLMotionProps<"div"> {
+  className?: string;
+}
 
 // Login form schema
 const loginSchema = z.object({
@@ -214,7 +219,6 @@ export default function AuthPage() {
     try {
       await register(data);
       setLocation('/dashboard'); // Redirect after successful registration
-
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
@@ -293,20 +297,21 @@ export default function AuthPage() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                  className="flex items-center space-x-2"
                 >
-                  <svg
-                    className="h-5 w-5 text-primary"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>{feature}</span>
+                  <div className="flex items-center space-x-2">
+                    <svg
+                      className="h-5 w-5 text-primary"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{feature}</span>
+                  </div>
                 </motion.li>
               ))}
             </ul>
