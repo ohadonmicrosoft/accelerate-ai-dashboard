@@ -25,33 +25,27 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 
-// Separate schemas for login and registration
+// Login form schema
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const registerSchema = loginSchema.extend({
+// Register form schema
+const registerSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const { login, register, isAuthenticating, user } = useAuth();
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      setLocation("/dashboard");
-    }
-  }, [user, setLocation]);
-
-  const loginForm = useForm<LoginFormData>({
+function LoginForm({ onSubmit, isLoading }: { 
+  onSubmit: (data: LoginFormData) => void;
+  isLoading: boolean;
+}) {
+  const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -59,7 +53,62 @@ export default function AuthPage() {
     },
   });
 
-  const registerForm = useForm<RegisterFormData>({
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="Enter your password"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={isLoading}
+        >
+          {isLoading ? "Please wait..." : "Sign In"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+function RegisterForm({ onSubmit, isLoading }: {
+  onSubmit: (data: RegisterFormData) => void;
+  isLoading: boolean;
+}) {
+  const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
@@ -68,37 +117,114 @@ export default function AuthPage() {
     },
   });
 
-  const currentForm = isLogin ? loginForm : registerForm;
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter your name"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="Enter your password"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={isLoading}
+        >
+          {isLoading ? "Please wait..." : "Sign Up"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
 
-  const handleAuth = async (data: LoginFormData | RegisterFormData) => {
+export default function AuthPage() {
+  const [isLogin, setIsLogin] = useState(true);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const { user, login, register, isAuthenticating } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      setLocation("/dashboard");
+    }
+  }, [user, setLocation]);
+
+  const handleLogin = async (data: LoginFormData) => {
     try {
-      if (isLogin) {
-        await login({ 
-          email: data.email, 
-          password: data.password 
-        });
-      } else {
-        const registerData = data as RegisterFormData;
-        await register({
-          email: registerData.email,
-          password: registerData.password,
-          name: registerData.name,
-        });
-      }
+      await login(data);
+      setLocation('/dashboard'); // Redirect after successful login
     } catch (error: any) {
-      console.error("Auth error:", error);
+      console.error("Login error:", error);
       toast({
-        title: isLogin ? "Login Failed" : "Registration Failed",
+        title: "Login Failed",
         description: error.message || "Please check your credentials and try again",
         variant: "destructive",
       });
     }
   };
 
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-    loginForm.reset();
-    registerForm.reset();
+  const handleRegister = async (data: RegisterFormData) => {
+    try {
+      await register(data);
+      setLocation('/dashboard'); // Redirect after successful registration
+
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Please check your information and try again",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -120,81 +246,17 @@ export default function AuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...currentForm}>
-                <form 
-                  onSubmit={currentForm.handleSubmit(handleAuth)} 
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={currentForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="Enter your email"
-                            disabled={isAuthenticating}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {!isLogin && (
-                    <FormField
-                      control={currentForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter your name"
-                              disabled={isAuthenticating}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                  <FormField
-                    control={currentForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Enter your password"
-                            disabled={isAuthenticating}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={isAuthenticating}
-                  >
-                    {isAuthenticating ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
-                  </Button>
-                </form>
-              </Form>
+              {isLogin ? (
+                <LoginForm onSubmit={handleLogin} isLoading={isAuthenticating} />
+              ) : (
+                <RegisterForm onSubmit={handleRegister} isLoading={isAuthenticating} />
+              )}
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 variant="ghost"
                 className="w-full"
-                onClick={toggleMode}
+                onClick={() => setIsLogin(!isLogin)}
                 disabled={isAuthenticating}
               >
                 {isLogin
